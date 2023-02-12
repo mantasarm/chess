@@ -173,9 +173,9 @@ pub  fn knigth_movement(board: &[[Piece; 8]; 8], x: usize, y: usize, c: &u8, mov
      if check_unavailabe {
         // Remove all the moves that are covered by enemy pieces
         let o_moves = if *c == 0 {
-           get_all_black_moves(board, false, false, castling_info, true)
+           get_all_black_moves(board, false, false, castling_info, true, false)
         } else {
-           get_all_white_moves(board, false, false, castling_info, true)
+           get_all_white_moves(board, false, false, castling_info, true, false)
         };
 
         let mut indices = Vec::<usize>::new();
@@ -197,9 +197,9 @@ pub  fn knigth_movement(board: &[[Piece; 8]; 8], x: usize, y: usize, c: &u8, mov
             board_copy[x][y] = Piece::Empty;
             board_copy[a_move.x][a_move.y] = Piece::King(*c);
             let o_moves = if *c == 0  {
-                get_all_black_moves(&board_copy, false, false, castling_info, true)
+                get_all_black_moves(&board_copy, false, false, castling_info, true, false)
             } else {
-                get_all_white_moves(&board_copy, false, false, castling_info, true)
+                get_all_white_moves(&board_copy, false, false, castling_info, true, false)
             };
 
             if o_moves.contains(a_move) {
@@ -215,14 +215,14 @@ pub  fn knigth_movement(board: &[[Piece; 8]; 8], x: usize, y: usize, c: &u8, mov
 
      // Castling
      let (checked, moves_through_check_r, moves_through_check_l, y) = if *c == 0 {
-        let b_moves = get_all_black_moves(board, false, false, castling_info, false);
+        let b_moves = get_all_black_moves(board, false, false, castling_info, false, false);
 
         let m_t_c_r = b_moves.contains(&Move { x: 5, y: 7 }) || b_moves.contains(&Move { x: 6, y: 7 });
         let m_t_c_l = b_moves.contains(&Move { x: 3, y: 7 }) || b_moves.contains(&Move { x: 2, y: 7 });
 
         (b_moves.contains(&Move { x: 4, y: 7 }), m_t_c_r, m_t_c_l, 7)
      } else {
-        let w_moves = get_all_white_moves(board, false, false, castling_info, false);
+        let w_moves = get_all_white_moves(board, false, false, castling_info, false, false);
 
         let m_t_c_r = w_moves.contains(&Move { x: 5, y: 0 }) || w_moves.contains(&Move { x: 6, y: 0 });
         let m_t_c_l = w_moves.contains(&Move { x: 3, y: 0 }) || w_moves.contains(&Move { x: 2, y: 0 });
@@ -240,7 +240,7 @@ pub  fn knigth_movement(board: &[[Piece; 8]; 8], x: usize, y: usize, c: &u8, mov
      }
  }
 
- pub fn get_all_white_moves(board: &[[Piece; 8]; 8], include_pawn_front: bool, checks_pins: bool, castling_info: &CastlingInfo, check_king: bool) -> Vec<Move> {
+ pub fn get_all_white_moves(board: &[[Piece; 8]; 8], include_pawn_front: bool, checks_pins: bool, castling_info: &CastlingInfo, check_king: bool, king_check_unavailable: bool) -> Vec<Move> {
     let mut move_array = Vec::<Move>::new();
 
     for i in 0..8 {
@@ -263,7 +263,7 @@ pub  fn knigth_movement(board: &[[Piece; 8]; 8], x: usize, y: usize, c: &u8, mov
                 }
                 Piece::King(0) => {
                     if check_king {
-                        move_array.append(&mut get_available_moves(board, i, j, false, include_pawn_front, checks_pins, &castling_info));
+                        move_array.append(&mut get_available_moves(board, i, j, king_check_unavailable, include_pawn_front, checks_pins, &castling_info));
                     }
                 }
                 _ => ()
@@ -274,7 +274,7 @@ pub  fn knigth_movement(board: &[[Piece; 8]; 8], x: usize, y: usize, c: &u8, mov
     move_array
 }
 
-pub fn get_all_black_moves(board: &[[Piece; 8]; 8], include_pawn_front: bool, checks_pins: bool, castling_info: &CastlingInfo, check_king: bool) -> Vec<Move> {
+pub fn get_all_black_moves(board: &[[Piece; 8]; 8], include_pawn_front: bool, checks_pins: bool, castling_info: &CastlingInfo, check_king: bool, king_check_unavailable: bool) -> Vec<Move> {
     let mut move_array = Vec::<Move>::new();
 
     for i in 0..8 {
@@ -297,7 +297,7 @@ pub fn get_all_black_moves(board: &[[Piece; 8]; 8], include_pawn_front: bool, ch
                 }
                 Piece::King(1) => {
                     if check_king {
-                        move_array.append(&mut get_available_moves(board, i, j, false, include_pawn_front, checks_pins, castling_info));
+                        move_array.append(&mut get_available_moves(board, i, j, king_check_unavailable, include_pawn_front, checks_pins, castling_info));
                     }
                 }
                 _ => ()
@@ -308,7 +308,7 @@ pub fn get_all_black_moves(board: &[[Piece; 8]; 8], include_pawn_front: bool, ch
     move_array
 }
 
- pub fn get_available_moves(board: &[[Piece; 8]; 8], x: usize, y: usize, check_unavailabe: bool, include_pawn_front: bool, checks_pins: bool, castling_info: &CastlingInfo) -> Vec<Move> {
+ pub fn get_available_moves(board: &[[Piece; 8]; 8], x: usize, y: usize, check_unavailable: bool, include_pawn_front: bool, checks_pins: bool, castling_info: &CastlingInfo) -> Vec<Move> {
     let mut move_array = Vec::<Move>::new();
 
     let mut color = 2;
@@ -384,7 +384,7 @@ pub fn get_all_black_moves(board: &[[Piece; 8]; 8], include_pawn_front: bool, ch
             color = *c;
         }
         Piece::King(c) => {
-            king_movement(board, x, y, c, &mut move_array, check_unavailabe, castling_info);
+            king_movement(board, x, y, c, &mut move_array, check_unavailable, castling_info);
             color = *c;
         }
         _ => (),
@@ -438,7 +438,7 @@ pub fn is_white_king_checked(board: &[[Piece; 8]; 8], castling_info: &CastlingIn
         for j in 0..8 {
             match board[i][j] {
                 Piece::King(0) => {
-                    let b_moves = get_all_black_moves(board, false, false, castling_info, true);
+                    let b_moves = get_all_black_moves(board, false, false, castling_info, true, false);
                     if b_moves.contains(&Move { x: i, y: j }) {
                         return true;
                     }
@@ -455,7 +455,7 @@ pub fn is_black_king_checked(board: &[[Piece; 8]; 8], castling_info: &CastlingIn
         for j in 0..8 {
             match board[i][j] {
                 Piece::King(1) => {
-                    let w_moves = get_all_white_moves(board, false, false, castling_info, true);
+                    let w_moves = get_all_white_moves(board, false, false, castling_info, true, false);
                     if w_moves.contains(&Move { x: i, y: j }) {
                         return true;
                     }

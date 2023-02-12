@@ -1,3 +1,4 @@
+//#![windows_subsystem = "windows"]
 mod chessboard;
 pub mod pieces;
 pub mod move_logic;

@@ -42,16 +42,6 @@ impl ChessBoard {
     }
 
     pub fn update(&mut self, app: &mut App) {
-        if is_white_king_checked(&self.board, &self.castling_info) && get_all_white_moves(&self.board, true, true, &self.castling_info, false).is_empty() {
-            self.game_state = GameState::BlackWon;
-        } else if is_black_king_checked(&self.board, &self.castling_info) && get_all_black_moves(&self.board, true, true, &self.castling_info, false).is_empty() {
-            self.game_state = GameState::WhiteWon;
-        } else if !self.turn && !is_white_king_checked(&self.board, &self.castling_info) && get_all_white_moves(&self.board, true, true, &self.castling_info, false).is_empty() {
-            self.game_state = GameState::Stalemate;
-        } else if self.turn && !is_black_king_checked(&self.board, &self.castling_info) && get_all_black_moves(&self.board, true, true, &self.castling_info, false).is_empty() {
-            self.game_state = GameState::Stalemate;
-        }
-
         if app.mouse.left_was_pressed() && !self.pawn_upgrade_info.upgrade_time && self.game_state == GameState::Game {
             let (x, y) = ((app.mouse.x / self.square_size) as usize, (app.mouse.y / self.square_size) as usize);
             let mut moved = false;
@@ -167,6 +157,16 @@ impl ChessBoard {
                         }
                         self.turn = !self.turn;
                         moved = true;
+
+                        if is_white_king_checked(&self.board, &self.castling_info) && get_all_white_moves(&self.board, true, true, &self.castling_info, true, true).is_empty() {
+                            self.game_state = GameState::BlackWon;
+                        } else if is_black_king_checked(&self.board, &self.castling_info) && get_all_black_moves(&self.board, true, true, &self.castling_info, true, true).is_empty() {
+                            self.game_state = GameState::WhiteWon;
+                        } else if !self.turn && !is_white_king_checked(&self.board, &self.castling_info) && get_all_white_moves(&self.board, true, true, &self.castling_info, true, true).is_empty() {
+                            self.game_state = GameState::Stalemate;
+                        } else if self.turn && !is_black_king_checked(&self.board, &self.castling_info) && get_all_black_moves(&self.board, true, true, &self.castling_info, true, true).is_empty() {
+                            self.game_state = GameState::Stalemate;
+                        }
                     }
                 },
                 _ => (),
@@ -201,8 +201,8 @@ impl ChessBoard {
     }
 
     pub fn render(&mut self, draw: &mut Draw, mouse: &Mouse) {
-        let a_w_moves = get_all_white_moves(&self.board, false, false, &self.castling_info, true);
-        let a_b_moves = get_all_black_moves(&self.board, false, false, &self.castling_info, true);
+        let a_w_moves = get_all_white_moves(&self.board, false, false, &self.castling_info, true, false);
+        let a_b_moves = get_all_black_moves(&self.board, false, false, &self.castling_info, true, false);
         for i in 0..8 {
             for j in 0..8 {
                 let c = if (i + j) as i32 % 2 != 0 {
