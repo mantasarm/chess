@@ -21,7 +21,7 @@ impl ChessBoard {
         Self {
             board: [[Piece::Empty; 8]; 8],
             
-            square_size: gfx.size().0 as f32 / 8.,
+            square_size: 100.,
 
             pieces_tex: gfx.create_texture().from_image(include_bytes!("assets/chess_pieces.png")).with_filter(TextureFilter::Linear, TextureFilter::Linear).build().unwrap(),
 
@@ -42,8 +42,13 @@ impl ChessBoard {
     }
 
     pub fn update(&mut self, app: &mut App) {
-        if app.mouse.left_was_pressed() && !self.pawn_upgrade_info.upgrade_time && self.game_state == GameState::Game {
-            let (x, y) = ((app.mouse.x / self.square_size) as usize, (app.mouse.y / self.square_size) as usize);
+        let (x, y);
+        if app.window().width() >= 800 {
+            (x, y) = (((app.mouse.x - (app.window().width() as f32 / 2. - 400.)) / self.square_size) as usize, ((app.mouse.y - (app.window().height() as f32 / 2. - 400.)) / self.square_size) as usize);
+        } else {
+            (x, y) = ((app.mouse.x * (800. / app.window().width() as f32) / self.square_size) as usize, ((app.mouse.y - (app.window().height() as f32 / 2. - app.window().width() as f32 / 2.)) * (800. / app.window().width() as f32) / self.square_size) as usize);
+        }
+        if app.mouse.left_was_pressed() && !self.pawn_upgrade_info.upgrade_time && self.game_state == GameState::Game && x < 8 && y < 8 {
             let mut moved = false;
             
             match self.chosen_piece {
