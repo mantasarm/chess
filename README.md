@@ -1,4 +1,4 @@
-# chess_rust
+# chess
 Chess from scratch made with rust and notan.
 https://chess-mantasarm.vercel.app/
 
